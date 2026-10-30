@@ -11,8 +11,9 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _curtainController;
+  late final AnimationController _bowController;
 
   @override
   void initState() {
@@ -21,11 +22,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
+    _bowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..repeat(reverse: true);
   }
 
   @override
+  @override
   void dispose() {
     _curtainController.dispose();
+    _bowController.dispose();
     super.dispose();
   }
 
@@ -116,19 +123,85 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Transform.rotate(
-                                    angle: -0.35,
-                                    child: const _BowLoop(),
+                              AnimatedBuilder(
+                                animation: _bowController,
+                                builder: (context, child) {
+                                  final scale =
+                                      1.0 + (_bowController.value * 0.07);
+
+                                  return Transform.scale(
+                                    scale: scale,
+                                    child: child,
+                                  );
+                                },
+                                child: SizedBox(
+                                  width: 112,
+                                  height: 64,
+                                  child: Stack(
+                                    alignment: Alignment.topCenter,
+                                    children: [
+                                      // Left ribbon tail
+                                      Positioned(
+                                        left: 27,
+                                        top: 23,
+                                        child: Transform.rotate(
+                                          angle: 0.25,
+                                          child: const _BowTail(),
+                                        ),
+                                      ),
+
+                                      // Right ribbon tail
+                                      Positioned(
+                                        right: 27,
+                                        top: 23,
+                                        child: Transform.rotate(
+                                          angle: -0.25,
+                                          child: const _BowTail(),
+                                        ),
+                                      ),
+
+                                      // Bow loops
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Transform.rotate(
+                                            angle: -0.35,
+                                            child: const _BowLoop(),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Transform.rotate(
+                                            angle: 0.35,
+                                            child: const _BowLoop(),
+                                          ),
+                                        ],
+                                      ),
+
+                                      // Bow center
+                                      Positioned(
+                                        top: 12,
+                                        child: Container(
+                                          width: 24,
+                                          height: 23,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFFF0F5),
+                                            borderRadius: BorderRadius.circular(
+                                              9,
+                                            ),
+                                            border: Border.all(
+                                              color: const Color(0xFFD95689),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.favorite_rounded,
+                                            color: AppColors.heart,
+                                            size: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 4),
-                                  Transform.rotate(
-                                    angle: 0.35,
-                                    child: const _BowLoop(),
-                                  ),
-                                ],
+                                ),
                               ),
                               Transform.translate(
                                 offset: const Offset(0, -8),
@@ -306,6 +379,26 @@ class _CurtainReveal extends StatelessWidget {
             size: 78,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _BowTail extends StatelessWidget {
+  const _BowTail();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 15,
+      height: 29,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF0F5),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(4),
+          bottomRight: Radius.circular(4),
+        ),
+        border: Border.all(color: const Color(0xFFD95689), width: 1.5),
       ),
     );
   }
